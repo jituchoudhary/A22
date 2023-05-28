@@ -1,0 +1,85 @@
+#A* alogorithm 
+
+import heapq
+
+class Node:
+    def __init__(self, state, parent=None, g=0, h=0):
+        self.state = state
+        self.parent = parent
+        self.g = g
+        self.h = h
+    
+    def f(self):
+        return self.g + self.h
+    
+    def __lt__(self, other):
+        return self.f() < other.f()
+
+def astar(start_state, goal_state, get_successors, heuristic):
+    open_list = []
+    closed_list = set()
+
+    start_node = Node(start_state)
+    heapq.heappush(open_list, start_node)
+
+    while open_list:
+        current_node = heapq.heappop(open_list)
+        current_state = current_node.state
+
+        if current_state == goal_state:
+            return reconstruct_path(current_node)
+
+        closed_list.add(current_state)
+
+        successors = get_successors(current_state)
+        for successor_state in successors:
+            if successor_state in closed_list:
+                continue
+
+            g = current_node.g + 1
+            h = heuristic(successor_state, goal_state)
+            successor_node = Node(successor_state, current_node, g, h)
+
+            heapq.heappush(open_list, successor_node)
+
+    return None
+
+def reconstruct_path(node):
+    path = []
+    while node:
+        path.append(node.state)
+        node = node.parent
+    return path[::-1]
+
+def get_successors(state):
+    x, y = state
+    successors = []
+    
+    # Move left
+    if x > 0:
+        successors.append((x - 1, y))
+    
+    # Move right
+    if x < 3:
+        successors.append((x + 1, y))
+    
+    # Move up
+    if y > 0:
+        successors.append((x, y - 1))
+    
+    # Move down
+    if y < 3:
+        successors.append((x, y + 1))
+    
+    return successors
+
+def heuristic(state, goal_state):
+    x1, y1 = state
+    x2, y2 = goal_state
+    return abs(x1 - x2) + abs(y1 - y2)
+
+start_state = (0, 0)
+goal_state = (3, 3)
+
+path = astar(start_state, goal_state, get_successors, heuristic)
+print(path)
